@@ -12,6 +12,7 @@ int main()
     sf::RenderWindow window(sf::VideoMode(width * cellSize, height * cellSize), "Minesweeper Test");
 
     // Init grid same val as window
+    if(mineCount > width*height)return -1;
     Grid grid(true, width, height, cellSize, mineCount);
 
     // init font for menu

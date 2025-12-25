@@ -6,6 +6,7 @@
 #include <memory> //för unique ptr
 #include <random> // för slump
 #include <algorithm> // för slump
+#include <typeinfo> // för dynamic cast
 #include "Cell.h" //cell bas-klassen
 #include "Mine.h" //mine subclass
 #include "NumCell.h" //numcell subclass

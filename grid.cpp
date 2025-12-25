@@ -50,22 +50,22 @@ void Grid::computeAdjacentCounts()
     {
         for (auto &cell : y)
         {
-            if(cell->isMine())
+            if (dynamic_cast<Mine *>(cell.get())) // om mina
             {
                 for (auto &d : dirs)
-            {
-                int nx = cell->getX() + d[0];
-                int ny = cell->getY() + d[1];
-
-                if (nx < 0 || ny < 0 || nx >= width || ny >= height) //skippa om out of bounds
-                    continue;
-
-                if (!cells[ny][nx]->isMine()) //om mina -> incrementera och set färg
                 {
-                    cells[ny][nx]->setAdjacentMines(cells[ny][nx]->getAdjacentMines() + 1);
-                    cells[ny][nx]->setColour();
+                    int nx = cell->getX() + d[0];
+                    int ny = cell->getY() + d[1];
+
+                    if (nx < 0 || ny < 0 || nx >= width || ny >= height) // skippa om out of bounds
+                        continue;
+
+                    if (NumCell* num = dynamic_cast<NumCell*>(cells[ny][nx].get())) // om numCell -> incrementera och set färg
+                    {
+                        num->setAdjacentMines(num->getAdjacentMines() + 1);
+                        num->setColour();
+                    }
                 }
-            }
             }
         }
     }
@@ -98,38 +98,33 @@ void Grid::handleClick(int mouseX, int mouseY, bool rightClick)
 
     Cell *cell = cells[cy][cx].get();
 
-    if (rightClick && !cell->isRevealed())
-    {
+    if (cell->isRevealed())
+        return;
+
+    if (rightClick) {
         cell->setFlagged(!cell->isFlagged());
         return;
     }
 
-    if (cell->isFlagged() || cell->isRevealed())
-        return;
-
     cell->reveal();
 
-    if (cell->isMine())
-    {
+    if (dynamic_cast<Mine*>(cell)) {
         running = false;
-        return;
-    }
+    } else if (NumCell* num = dynamic_cast<NumCell*>(cell)) {
+        if (num->getAdjacentMines() == 0) {
+            static const int dirs[8][2] =
+                {
+                    {-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}};
 
-    if (cell->getAdjacentMines() == 0)
-    {
-        static const int dirs[8][2] =
-            {
-                {-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}};
+            for (auto &d : dirs) {
+                int nx = cx + d[0];
+                int ny = cy + d[1];
 
-        for (auto &d : dirs)
-        {
-            int nx = cx + d[0];
-            int ny = cy + d[1];
+                if (nx < 0 || ny < 0 || nx >= width || ny >= height)
+                    continue;
 
-            if (nx < 0 || ny < 0 || nx >= width || ny >= height)
-                continue;
-
-            handleClick(nx * cellSize + 1, ny * cellSize + 1, false);
+                handleClick(nx * cellSize + 1, ny * cellSize + 1, false);
+            }
         }
     }
 }

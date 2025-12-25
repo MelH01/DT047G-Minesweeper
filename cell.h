@@ -20,14 +20,9 @@ public:
     Cell(int x, int y, float size);
     virtual ~Cell() = default;
 
-    // --- POLYMORPHIC INTERFACE ---
-    virtual bool isMine() const = 0;
     virtual void reveal() = 0;
     virtual void setColour() {}; 
-    virtual void setAdjacentMines(int n) = 0;
-    virtual int getAdjacentMines() const = 0;
 
-    // --- SHARED BEHAVIOR ---
     bool isRevealed() const { return revealed; }
     bool isFlagged() const { return flagged; }
     void setFlagged(bool f);

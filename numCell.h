@@ -11,11 +11,11 @@ private:
 public:
     NumCell(int x, int y, float size);
 
-    bool isMine() const override;
-    void setAdjacentMines(int n) override;
-    int getAdjacentMines() const override;
     void reveal() override;
     void setColour() override;
+
+    void setAdjacentMines(int n) ;
+    int getAdjacentMines() const ;
 };
 
 #endif

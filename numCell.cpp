@@ -1,14 +1,6 @@
 #include "NumCell.h"
 
-NumCell::NumCell(int x, int y, float size)
-    : Cell(x, y, size)
-{
-}
-
-bool NumCell::isMine() const
-{
-    return false;
-}
+NumCell::NumCell(int x, int y, float size) : Cell(x, y, size){}
 
 void NumCell::setAdjacentMines(int n)
 {
