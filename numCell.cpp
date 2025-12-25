@@ -10,9 +10,9 @@ bool NumCell::isMine() const
     return false;
 }
 
-void NumCell::incrementAdjacent()
+void NumCell::setAdjacentMines(int n)
 {
-    adjacentMines++;
+    adjacentMines = n;
 }
 
 int NumCell::getAdjacentMines() const

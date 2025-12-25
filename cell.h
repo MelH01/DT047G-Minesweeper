@@ -22,8 +22,6 @@ public:
 
     // --- POLYMORPHIC INTERFACE ---
     virtual bool isMine() const = 0;
-    virtual void incrementAdjacent() = 0;
-    virtual int getAdjacentMines() const = 0;
     virtual void reveal() = 0;
     virtual void setColour() {}; 
 

@@ -17,11 +17,10 @@ void Grid::initCells()
         {
             cells[y][x] = std::make_unique<NumCell>(x, y, cellSize);
         }
-
     }
 }
 
-//Byter ut numCells på random positioner till minor
+// Byter ut numCells på random positioner till minor
 void Grid::placeMines()
 {
     std::vector<std::pair<int, int>> pos;
@@ -44,20 +43,14 @@ void Grid::placeMines()
 void Grid::computeAdjacentCounts()
 {
     static const int dirs[8][2] =
-    {
-        {-1,-1}, {-1,0}, {-1,1},
-        {0,-1},          {0,1},
-        {1,-1},  {1,0},  {1,1}
-    };
+        {
+            {-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}};
 
     for (int y = 0; y < height; y++)
     {
         for (int x = 0; x < width; x++)
         {
-            if (!cells[y][x]->isMine())
-                continue;
-
-            for (auto& d : dirs)
+            for (auto &d : dirs)
             {
                 int nx = x + d[0];
                 int ny = y + d[1];
@@ -65,22 +58,24 @@ void Grid::computeAdjacentCounts()
                 if (nx < 0 || ny < 0 || nx >= width || ny >= height)
                     continue;
 
-                cells[ny][nx]->incrementAdjacent();
-                cells[ny][nx]->setColour();
+                if (!cells[ny][nx]->isMine()) // only increment NumCell
+                {
+                    cells[ny][nx]->setAdjacentMines(cells[ny][nx]->getAdjacentMines() + 1);
+                    cells[ny][nx]->setColour();
+                }
             }
         }
     }
 }
 
-void Grid::draw(sf::RenderWindow& window)
+void Grid::draw(sf::RenderWindow &window)
 {
-    for (auto& row : cells)
-        for (auto& cell : row)
+    for (auto &row : cells)
+        for (auto &cell : row)
             cell->draw(window);
 }
 
-
-//resetta gridet
+// resetta gridet
 void Grid::reset()
 {
     running = true;
@@ -98,7 +93,7 @@ void Grid::handleClick(int mouseX, int mouseY, bool rightClick)
     if (cx < 0 || cy < 0 || cx >= width || cy >= height)
         return;
 
-    Cell* cell = cells[cy][cx].get();
+    Cell *cell = cells[cy][cx].get();
 
     if (rightClick && !cell->isRevealed())
     {
@@ -120,13 +115,10 @@ void Grid::handleClick(int mouseX, int mouseY, bool rightClick)
     if (cell->getAdjacentMines() == 0)
     {
         static const int dirs[8][2] =
-        {
-            {-1,-1}, {-1,0}, {-1,1},
-            {0,-1},          {0,1},
-            {1,-1},  {1,0},  {1,1}
-        };
+            {
+                {-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}};
 
-        for (auto& d : dirs)
+        for (auto &d : dirs)
         {
             int nx = cx + d[0];
             int ny = cy + d[1];

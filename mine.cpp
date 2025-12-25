@@ -1,24 +1,14 @@
 #include "mine.h"
 
-Mine::Mine(int x, int y, float size)
-    : Cell(x, y, size)
-{
-}
+Mine::Mine(int x, int y, float size) : Cell(x, y, size){}
 
 bool Mine::isMine() const
 {
     return true;
 }
+void Mine::setAdjacentMines(int n){}
 
-void Mine::incrementAdjacent()
-{
-    // Mines do not track adjacency
-}
-
-int Mine::getAdjacentMines() const
-{
-    return -1; // meaningless for mines
-}
+int Mine::getAdjacentMines() const{return -1;}
 
 void Mine::reveal()
 {

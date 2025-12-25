@@ -9,7 +9,7 @@ public:
     Mine(int x, int y, float size);
 
     bool isMine() const override;
-    void incrementAdjacent() override;
+    void setAdjacentMines(int n) override;
     int getAdjacentMines() const override;
     void reveal() override;
     void setColour() override {};
