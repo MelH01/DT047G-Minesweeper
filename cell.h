@@ -20,17 +20,23 @@ public:
     Cell(int x, int y, float size);
     virtual ~Cell() = default;
 
-    virtual void reveal() = 0;
-    virtual void setColour() {}; 
+    virtual void setColour() {};
+    virtual void setRevealed(bool r);
 
-    bool isRevealed() const { return revealed; }
-    bool isFlagged() const { return flagged; }
+    bool getRevealed() const { return revealed; }
+    bool getFlagged() const { return flagged; }
     void setFlagged(bool f);
     int getX() const { return x; }
     int getY() const { return y; }
 
-    virtual void draw(sf::RenderWindow& window);
-
+    virtual void draw(sf::RenderWindow &window);
+    virtual void print(std::ostream &os) const = 0;
 };
+
+inline std::ostream &operator<<(std::ostream &os, const Cell &cell)
+{
+    cell.print(os);
+    return os;
+}
 
 #endif

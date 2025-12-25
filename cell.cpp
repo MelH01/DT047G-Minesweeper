@@ -31,6 +31,11 @@ void Cell::setFlagged(bool f)
     shape.setFillColor(flagged ? sf::Color::Red : sf::Color::White);
 }
 
+void Cell::setRevealed(bool r)
+{
+    revealed = r;
+}
+
 void Cell::draw(sf::RenderWindow& window)
 {
     window.draw(shape);

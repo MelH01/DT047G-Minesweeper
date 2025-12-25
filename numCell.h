@@ -11,11 +11,17 @@ private:
 public:
     NumCell(int x, int y, float size);
 
-    void reveal() override;
+    void setRevealed(bool r) override;
     void setColour() override;
 
-    void setAdjacentMines(int n) ;
-    int getAdjacentMines() const ;
+    void setAdjacentMines(int n);
+    int getAdjacentMines() const;
+
+    void print(std::ostream &os) const override
+    {
+        // NumCell(1) reveald flagged 
+        os << 1 << ' ' << revealed << ' ' << flagged;
+    }
 };
 
 #endif

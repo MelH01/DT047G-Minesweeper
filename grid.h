@@ -7,6 +7,8 @@
 #include <random> // för slump
 #include <algorithm> // för slump
 #include <typeinfo> // för dynamic cast
+#include <fstream> //for save
+#include <sstream> //for load
 #include "Cell.h" //cell bas-klassen
 #include "Mine.h" //mine subclass
 #include "NumCell.h" //numcell subclass
@@ -34,6 +36,11 @@ public:
 
     void handleClick(int mouseX, int mouseY, bool rightClick);
     void draw(sf::RenderWindow& window);
+
+    void save(std::string f);
+    void load(std::string f);
+
+    friend std::ostream& operator<< (std::ostream& os, const Grid& grid);
 };
 
 #endif

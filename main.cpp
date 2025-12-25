@@ -34,6 +34,17 @@ int main()
                 if (event.type == sf::Event::Closed)
                     window.close();
 
+                if (event.type == sf::Event::KeyPressed)
+                {
+                    //save
+                    if (event.key.code == sf::Keyboard::S)
+                    grid.save("grid.txt");
+
+                    //load
+                    if (event.key.code == sf::Keyboard::L)
+                    grid.load("grid.txt");
+                }
+
                 if (event.type == sf::Event::MouseButtonPressed)
                 {
                     if (event.mouseButton.button == sf::Mouse::Left)

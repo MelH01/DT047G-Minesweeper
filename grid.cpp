@@ -1,5 +1,5 @@
 #include "Grid.h"
-
+#include <iostream>
 Grid::Grid(bool running, int width, int height, float cellSize, int mineCount) : running(running), width(width), height(height), cellSize(cellSize), mineCount(mineCount)
 {
     reset();
@@ -57,13 +57,14 @@ void Grid::computeAdjacentCounts()
                     int nx = cell->getX() + d[0];
                     int ny = cell->getY() + d[1];
 
-                    if (nx < 0 || ny < 0 || nx >= width || ny >= height) // skippa om out of bounds
+                    if (nx < 0 || ny < 0 || nx >= width || ny >= height) // skippa om file of bounds
                         continue;
 
-                    if (NumCell* num = dynamic_cast<NumCell*>(cells[ny][nx].get())) // om numCell -> incrementera och set färg
+                    if (NumCell *num = dynamic_cast<NumCell *>(cells[ny][nx].get())) // om numCell -> incrementera och set färg
                     {
                         num->setAdjacentMines(num->getAdjacentMines() + 1);
                         num->setColour();
+                        std::cout << num->getAdjacentMines();
                     }
                 }
             }
@@ -98,25 +99,31 @@ void Grid::handleClick(int mouseX, int mouseY, bool rightClick)
 
     Cell *cell = cells[cy][cx].get();
 
-    if (cell->isRevealed())
+    if (cell->getRevealed())
         return;
 
-    if (rightClick) {
-        cell->setFlagged(!cell->isFlagged());
+    if (rightClick)
+    {
+        cell->setFlagged(!cell->getFlagged());
         return;
     }
 
-    cell->reveal();
+    cell->setRevealed(1);
 
-    if (dynamic_cast<Mine*>(cell)) {
+    if (dynamic_cast<Mine *>(cell))
+    {
         running = false;
-    } else if (NumCell* num = dynamic_cast<NumCell*>(cell)) {
-        if (num->getAdjacentMines() == 0) {
+    }
+    else if (NumCell *num = dynamic_cast<NumCell *>(cell))
+    {
+        if (num->getAdjacentMines() == 0)
+        {
             static const int dirs[8][2] =
                 {
                     {-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}};
 
-            for (auto &d : dirs) {
+            for (auto &d : dirs)
+            {
                 int nx = cx + d[0];
                 int ny = cy + d[1];
 
@@ -124,6 +131,77 @@ void Grid::handleClick(int mouseX, int mouseY, bool rightClick)
                     continue;
 
                 handleClick(nx * cellSize + 1, ny * cellSize + 1, false);
+            }
+        }
+    }
+}
+
+std::ostream &operator<<(std::ostream &os, const Grid &grid)
+{
+    os << grid.width << ' ' << grid.height << '\n';
+
+    for (const auto &row : grid.cells)
+    {
+        for (const auto &cell : row)
+        {
+            os << *cell << '\n';
+        }
+    }
+    return os;
+}
+
+void Grid::save(std::string f)
+{
+    std::ofstream file(f);
+    if (!file)
+        throw std::runtime_error("Kunde inte öppna fil för sparning");
+
+    file << *this;
+}
+
+void Grid::load(std::string f)
+{
+    std::ifstream file(f);
+    if (!file)
+        throw std::runtime_error("Kunde inte öppna fil för sparning");
+
+    cells.clear();
+
+    file >> width >> height;
+    file.ignore();
+    cells.resize(height);
+
+    for (int y = 0; y < height; y++)
+    {
+        cells[y].resize(width);
+        for (int x = 0; x < width; x++)
+        {
+            bool type, getRevealed, getFlagged;
+            file >> type >> getRevealed >> getFlagged;
+            file.ignore();
+
+            // num
+            if (type)
+            {
+                cells[y][x] = std::make_unique<NumCell>(x, y, cellSize);
+            }
+            // mine
+            else
+                cells[y][x] = std::make_unique<Mine>(x, y, cellSize);
+
+            cells[y][x]->setFlagged(getFlagged);
+            cells[y][x]->setRevealed(getRevealed);
+        }
+    }
+    computeAdjacentCounts();
+
+    for(auto &y : cells)
+    {
+        for (auto &cell : y)
+        {
+            if (cell->getRevealed())
+            {
+                cell->setRevealed(cell->getRevealed());
             }
         }
     }
