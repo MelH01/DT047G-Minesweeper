@@ -46,23 +46,26 @@ void Grid::computeAdjacentCounts()
         {
             {-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}};
 
-    for (int y = 0; y < height; y++)
+    for (auto &y : cells)
     {
-        for (int x = 0; x < width; x++)
+        for (auto &cell : y)
         {
-            for (auto &d : dirs)
+            if(cell->isMine())
             {
-                int nx = x + d[0];
-                int ny = y + d[1];
+                for (auto &d : dirs)
+            {
+                int nx = cell->getX() + d[0];
+                int ny = cell->getY() + d[1];
 
-                if (nx < 0 || ny < 0 || nx >= width || ny >= height)
+                if (nx < 0 || ny < 0 || nx >= width || ny >= height) //skippa om out of bounds
                     continue;
 
-                if (!cells[ny][nx]->isMine()) // only increment NumCell
+                if (!cells[ny][nx]->isMine()) //om mina -> incrementera och set färg
                 {
                     cells[ny][nx]->setAdjacentMines(cells[ny][nx]->getAdjacentMines() + 1);
                     cells[ny][nx]->setColour();
                 }
+            }
             }
         }
     }
