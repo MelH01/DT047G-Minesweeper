@@ -1,176 +1,140 @@
 #include "Grid.h"
 
-Grid::Grid(bool running, int width, int height, float cellSize, int mindCount) : running(running), width(width), height(height), cellSize(cellSize), mineCount(mindCount)
+Grid::Grid(bool running, int width, int height, float cellSize, int mineCount) : running(running), width(width), height(height), cellSize(cellSize), mineCount(mineCount)
 {
-    initCells();
-    placeMines();
-    computeAdjacentCounts();
-    for (auto &row : cells)
-        for (auto &c : row)
-            c.setColour();
+    reset();
 }
 
 void Grid::initCells()
 {
-    cells.reserve(height);
+    cells.clear();
+    cells.resize(height);
 
     for (int y = 0; y < height; y++)
     {
-        std::vector<Cell> row;
-        row.reserve(width);
-
+        cells[y].resize(width);
         for (int x = 0; x < width; x++)
         {
-            row.emplace_back(x, y, cellSize);
+            cells[y][x] = std::make_unique<NumCell>(x, y, cellSize);
         }
 
-        cells.push_back(row);
     }
 }
 
+//Byter ut numCells på random positioner till minor
 void Grid::placeMines()
 {
-    std::vector<std::pair<int, int>> cellsTmp;
+    std::vector<std::pair<int, int>> pos;
 
-    // Collect all cells
     for (int y = 0; y < height; y++)
-    {
         for (int x = 0; x < width; x++)
-        {
-            cellsTmp.push_back({x, y});
-        }
-    }
+            pos.push_back(std::make_pair(x, y));
 
-    // Shuffle coordinates
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::shuffle(cellsTmp.begin(), cellsTmp.end(), gen);
+    std::shuffle(pos.begin(), pos.end(), gen);
 
-    // Set mines
     for (int i = 0; i < mineCount; i++)
     {
-        auto [x, y] = cellsTmp[i];
-        cells[y][x].setMine(true);
+        auto [x, y] = pos[i];
+        cells[y][x] = std::make_unique<Mine>(x, y, cellSize);
     }
 }
 
 void Grid::computeAdjacentCounts()
 {
     static const int dirs[8][2] =
-        {
-            {-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}};
+    {
+        {-1,-1}, {-1,0}, {-1,1},
+        {0,-1},          {0,1},
+        {1,-1},  {1,0},  {1,1}
+    };
 
     for (int y = 0; y < height; y++)
     {
         for (int x = 0; x < width; x++)
         {
-            if (!cells[y][x].isMine())
+            if (!cells[y][x]->isMine())
                 continue;
 
-            // For each mine, increment its neighbors
-            for (auto &d : dirs)
+            for (auto& d : dirs)
             {
                 int nx = x + d[0];
                 int ny = y + d[1];
 
-                // boundary check
                 if (nx < 0 || ny < 0 || nx >= width || ny >= height)
                     continue;
 
-                cells[ny][nx].getAdjacentMines()++;
+                cells[ny][nx]->incrementAdjacent();
+                cells[ny][nx]->setColour();
             }
         }
     }
 }
 
-Cell &Grid::getCell(int x, int y)
+void Grid::draw(sf::RenderWindow& window)
 {
-    return cells[y][x];
+    for (auto& row : cells)
+        for (auto& cell : row)
+            cell->draw(window);
 }
 
-void Grid::revealCell(int x, int y)
-{
-    cells[y][x].setRevealed(true);
-}
 
-void Grid::flagCell(int x, int y)
-{
-    bool old = cells[y][x].isFlagged();
-    cells[y][x].setFlagged(!old);
-}
-
-void Grid::draw(sf::RenderWindow &window)
-{
-    for (auto &row : cells)
-        for (auto &c : row)
-        {
-            window.draw(c.getShape());
-            window.draw(c.getText());
-        }
-}
-
+//resetta gridet
 void Grid::reset()
 {
-    for (auto &row : cells)
-        for (auto &c : row)
-        {
-            c.setRevealed(false);
-            c.setFlagged(false);
-            c.setText("");
-        }
+    running = true;
+
+    initCells();
+    placeMines();
+    computeAdjacentCounts();
 }
 
 void Grid::handleClick(int mouseX, int mouseY, bool rightClick)
 {
-    // get loc
     int cx = mouseX / cellSize;
     int cy = mouseY / cellSize;
 
-    // check boundries
     if (cx < 0 || cy < 0 || cx >= width || cy >= height)
         return;
 
-    // get cell 
-    Cell &cell = cells[cy][cx];
+    Cell* cell = cells[cy][cx].get();
 
-    if (rightClick)
+    if (rightClick && !cell->isRevealed())
     {
-        cell.setFlagged(!cell.isFlagged());
+        cell->setFlagged(!cell->isFlagged());
+        return;
     }
-    else
+
+    if (cell->isFlagged() || cell->isRevealed())
+        return;
+
+    cell->reveal();
+
+    if (cell->isMine())
     {
-        cell.setRevealed(true);
+        running = false;
+        return;
+    }
 
-        if (cell.isMine())
+    if (cell->getAdjacentMines() == 0)
+    {
+        static const int dirs[8][2] =
         {
-            reset();
-            return;
-        }
+            {-1,-1}, {-1,0}, {-1,1},
+            {0,-1},          {0,1},
+            {1,-1},  {1,0},  {1,1}
+        };
 
-        // recursive flood fill (like paint)
-        if (cell.getAdjacentMines() == 0 && !cell.isMine())
+        for (auto& d : dirs)
         {
-            static const int dirs[8][2] =
-                {
-                    {-1, -1}, {-1, 0}, {-1, 1}, 
-                    {0, -1},         {0, 1}, 
-                    {1, -1}, {1, 0}, {1, 1}};
+            int nx = cx + d[0];
+            int ny = cy + d[1];
 
-            for (auto &d : dirs)
-            {
-                int nx = cx + d[0];
-                int ny = cy + d[1];
+            if (nx < 0 || ny < 0 || nx >= width || ny >= height)
+                continue;
 
-                //
-                if (nx < 0 || ny < 0 || nx >= width || ny >= height)
-                    continue;
-
-                Cell &neighbor = cells[ny][nx];
-                if (!neighbor.isRevealed() && !neighbor.isMine())
-                {
-                    handleClick(nx * cellSize + 1, ny * cellSize + 1, false);
-                }
-            }
+            handleClick(nx * cellSize + 1, ny * cellSize + 1, false);
         }
     }
 }
